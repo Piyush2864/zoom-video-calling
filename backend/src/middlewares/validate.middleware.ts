@@ -10,7 +10,7 @@ export function validate(schema: AnyZodObject) {
         query: req.query,
         params: req.params,
       });
-      next();
+      next();             
     } catch (error) {
       if (error instanceof ZodError) {
         return next(ApiError.badRequest('Validation failed', error.flatten().fieldErrors));

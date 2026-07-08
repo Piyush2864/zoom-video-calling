@@ -7,7 +7,6 @@ export function errorMiddleware(
   err: Error | ApiError,
   req: Request,
   res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction
 ) {
   let statusCode = 500;

@@ -50,7 +50,6 @@ export const logout = asyncHandler(async (req: AuthRequest, res: Response) => {
 
 export const forgotPassword = asyncHandler(async (req: AuthRequest, res: Response) => {
   await authService.forgotPassword(req.body.email);
-  // always return a generic message regardless of whether the email exists
   res
     .status(200)
     .json(new ApiResponse('If that email exists, a password reset link has been sent'));

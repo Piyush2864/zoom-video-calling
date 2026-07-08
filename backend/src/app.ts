@@ -25,7 +25,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/v1/auth', authRoutes);
 
-// TODO: mount user, meeting, chat, recording, whiteboard, admin routes here as they're built
+
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

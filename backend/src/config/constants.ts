@@ -7,7 +7,7 @@ export const refreshCookieOptions = {
   secure: env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
   domain: env.COOKIE_DOMAIN,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  maxAge: 7 * 24 * 60 * 60 * 1000, 
   path: '/',
 };
 

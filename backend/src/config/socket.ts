@@ -21,9 +21,6 @@ export function initSocket(server: HttpServer): Server {
     });
   });
 
-  // NOTE: once we build the meeting/webrtc/chat/whiteboard modules, their handlers
-  // (from src/sockets/*.socket.ts) will be registered here, e.g.:
-  // registerMeetingHandlers(io); registerWebRTCHandlers(io); ...
 
   return io;
 }

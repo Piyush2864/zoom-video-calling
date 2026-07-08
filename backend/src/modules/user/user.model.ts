@@ -4,12 +4,12 @@ import { AuthProvider } from '../../config/constants';
 export interface IUser extends Document {
   name: string;
   email: string;
-  password?: string; // not required for google-only users
+  password?: string; 
   avatar?: string;
   provider: AuthProvider;
   googleId?: string;
   isEmailVerified: boolean;
-  tokenVersion: number; // bumped on password change / logout-all to invalidate old refresh tokens
+  tokenVersion: number; 
   createdAt: Date;
   updatedAt: Date;
 }

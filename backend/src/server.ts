@@ -10,7 +10,7 @@ async function bootstrap() {
 
   const server = http.createServer(app);
 
-  initSocket(server); // attaches socket.io, sets up namespaces/middleware (added when we build the sockets layer)
+  initSocket(server); 
 
   server.listen(env.PORT, () => {
     logger.info(`Server running on port ${env.PORT} [${env.NODE_ENV}]`);
