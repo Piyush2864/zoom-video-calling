@@ -21,3 +21,12 @@ export enum MeetingRole {
   CO_HOST = 'co-host',
   PARTICIPANT = 'participant',
 }
+
+
+export const EMAIL_VERIFICATION_EXPIRY_MS = 24 * 60 * 60 * 1000; 
+
+
+export const PASSWORD_RESET_EXPIRY_MS = 15 * 60 * 1000; 
+
+
+export const TWO_FACTOR_BACKUP_CODE_COUNT = 8;

@@ -15,11 +15,21 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(10, 'JWT_REFRESH_SECRET too short'),
   JWT_ACCESS_EXPIRY: z.string().default('15m'),
   JWT_REFRESH_EXPIRY: z.string().default('7d'),
+  JWT_TWO_FACTOR_SECRET: z.string().min(10, 'JWT_TWO_FACTOR_SECRET too short'),
+  JWT_TWO_FACTOR_EXPIRY: z.string().default('5m'),
 
   GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
   GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
 
   COOKIE_DOMAIN: z.string().default('localhost'),
+
+  SMTP_HOST: z.string().min(1, 'SMTP_HOST is required'),
+  SMTP_PORT: z.string().default('587'),
+  SMTP_USER: z.string().min(1, 'SMTP_USER is required'),
+  SMTP_PASS: z.string().min(1, 'SMTP_PASS is required'),
+  MAIL_FROM: z.string().min(1, 'MAIL_FROM is required'),
+
+  APP_NAME: z.string().default('ZoomClone'),
 });
 
 const parsed = envSchema.safeParse(process.env);
