@@ -22,6 +22,33 @@ export enum MeetingRole {
   PARTICIPANT = 'participant',
 }
 
+export enum MeetingType {
+  INSTANT = 'instant',
+  SCHEDULED = 'scheduled',
+  RECURRING = 'recurring',
+  PERSONAL = 'personal',
+}
+
+export enum MeetingStatus {
+  SCHEDULED = 'scheduled', 
+  ONGOING = 'ongoing',
+  ENDED = 'ended',
+  CANCELLED = 'cancelled',
+}
+
+export enum ParticipantStatus {
+  WAITING = 'waiting', 
+  ADMITTED = 'admitted',
+  DENIED = 'denied',
+  LEFT = 'left',
+}
+
+export enum RecurrenceFrequency {
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
+}
+
 
 export const EMAIL_VERIFICATION_EXPIRY_MS = 24 * 60 * 60 * 1000; 
 
