@@ -1,21 +1,30 @@
 import { Schema, model, Document } from 'mongoose';
 import { AuthProvider } from '../../config/constants';
 
+export interface IUserSettings {
+  defaultCameraOn: boolean;
+  defaultMicOn: boolean;
+  emailNotifications: boolean;
+  language: string;
+}
+
 export interface IUser extends Document {
   name: string;
   email: string;
   password?: string; 
   avatar?: string;
+  avatarPublicId?: string; 
   provider: AuthProvider;
   googleId?: string;
   isEmailVerified: boolean;
   tokenVersion: number; 
+  settings: IUserSettings;
 
- 
+  
   emailVerificationTokenHash?: string;
   emailVerificationExpires?: Date;
 
-  
+ 
   passwordResetTokenHash?: string;
   passwordResetExpires?: Date;
 
@@ -29,12 +38,23 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
+const settingsSchema = new Schema<IUserSettings>(
+  {
+    defaultCameraOn: { type: Boolean, default: true },
+    defaultMicOn: { type: Boolean, default: true },
+    emailNotifications: { type: Boolean, default: true },
+    language: { type: String, default: 'en' },
+  },
+  { _id: false }
+);
+
 const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, select: false },
     avatar: { type: String },
+    avatarPublicId: { type: String },
     provider: {
       type: String,
       enum: Object.values(AuthProvider),
@@ -43,6 +63,7 @@ const userSchema = new Schema<IUser>(
     googleId: { type: String, index: true, sparse: true },
     isEmailVerified: { type: Boolean, default: false },
     tokenVersion: { type: Number, default: 0 },
+    settings: { type: settingsSchema, default: () => ({}) },
 
     emailVerificationTokenHash: { type: String, select: false },
     emailVerificationExpires: { type: Date, select: false },

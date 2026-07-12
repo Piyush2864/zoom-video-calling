@@ -30,12 +30,17 @@ const envSchema = z.object({
   MAIL_FROM: z.string().min(1, 'MAIL_FROM is required'),
 
   APP_NAME: z.string().default('ZoomClone'),
+
+  CLOUDINARY_CLOUD_NAME: z.string().min(1, 'CLOUDINARY_CLOUD_NAME is required'),
+  CLOUDINARY_API_KEY: z.string().min(1, 'CLOUDINARY_API_KEY is required'),
+  CLOUDINARY_API_SECRET: z.string().min(1, 'CLOUDINARY_API_SECRET is required'),
 });
 
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors);
+  
+  console.error(' Invalid environment variables:', parsed.error.flatten().fieldErrors);
   process.exit(1);
 }
 
