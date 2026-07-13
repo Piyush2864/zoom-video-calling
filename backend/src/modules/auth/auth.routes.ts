@@ -18,7 +18,6 @@ import {
 
 const router = Router();
 
-// Core auth
 router.post('/signup', authRateLimiter, validate(signupSchema), authController.signup);
 router.post('/login', authRateLimiter, validate(loginSchema), authController.login);
 router.post('/google', authRateLimiter, validate(googleLoginSchema), authController.googleLogin);

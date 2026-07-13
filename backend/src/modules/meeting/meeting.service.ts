@@ -10,7 +10,7 @@ import {
   RecurrenceFrequency,
 } from '../../config/constants';
 import { IMeeting, IParticipant } from './meeting.model';
-import { idToString } from './meeting.utils';
+import { idToString, isHostOrCoHost } from './meeting.utils';
 import {
   CreateInstantMeetingInput,
   ScheduleMeetingInput,
@@ -20,7 +20,6 @@ import {
 } from './meeting.types';
 
 function generateMeetingCode(): string {
- 
   const digits = crypto.randomInt(100000000, 999999999).toString();
   return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 9)}`;
 }
@@ -52,6 +51,8 @@ export class MeetingService {
       actualEndTime: meeting.actualEndTime,
       isRecurring: meeting.isRecurring,
       isPersonalRoom: meeting.isPersonalRoom,
+      isLocked: meeting.isLocked,
+      isRecording: meeting.isRecording,
       hasPassword: Boolean(meeting.passwordHash),
       settings: {
         waitingRoomEnabled: meeting.settings.waitingRoomEnabled,
@@ -78,7 +79,12 @@ export class MeetingService {
     }
   }
 
- 
+  private assertIsHostOrCoHost(meeting: IMeeting, userId: string) {
+    if (!isHostOrCoHost(meeting, userId)) {
+      throw ApiError.forbidden('Only the host or a co-host can perform this action');
+    }
+  }
+
   async createInstantMeeting(hostId: string, input: CreateInstantMeetingInput): Promise<SafeMeeting> {
     const meetingCode = await this.generateUniqueMeetingCode();
 
@@ -101,7 +107,6 @@ export class MeetingService {
 
     return this.toSafeMeeting(meeting);
   }
-
 
   async scheduleMeeting(hostId: string, input: ScheduleMeetingInput): Promise<SafeMeeting> {
     const meetingCode = await this.generateUniqueMeetingCode();
@@ -135,7 +140,6 @@ export class MeetingService {
     return this.toSafeMeeting(meeting);
   }
 
-  
   async getOrCreatePersonalRoom(hostId: string): Promise<SafeMeeting> {
     let meeting = await this.repo.findPersonalRoomByHost(hostId);
 
@@ -154,7 +158,6 @@ export class MeetingService {
     return this.toSafeMeeting(meeting);
   }
 
-  
   async startMeeting(meetingId: string, hostId: string): Promise<SafeMeeting> {
     const meeting = await this.repo.findById(meetingId);
     if (!meeting) throw ApiError.notFound('Meeting not found');
@@ -184,7 +187,6 @@ export class MeetingService {
     return this.toSafeMeeting(meeting);
   }
 
-  
   async joinMeeting(userId: string, meetingCode: string, password?: string): Promise<JoinMeetingResult> {
     const meeting = await this.repo.findByMeetingCode(meetingCode);
     if (!meeting) throw ApiError.notFound('Invalid meeting code');
@@ -204,6 +206,14 @@ export class MeetingService {
 
     const isHost = idToString(meeting.host) === userId;
     const participant = meeting.participants.find((p) => p.user.toString() === userId);
+
+    if (meeting.isLocked && !isHost && !participant) {
+      throw ApiError.forbidden('The host has locked this meeting to new participants');
+    }
+
+    if (participant?.status === ParticipantStatus.REMOVED) {
+      throw ApiError.forbidden('You have been removed from this meeting by the host');
+    }
 
     if (isHost) {
       if (!participant) {
@@ -225,7 +235,6 @@ export class MeetingService {
       throw ApiError.badRequest('This meeting is full');
     }
 
-    
     if (participant && participant.status === ParticipantStatus.ADMITTED) {
       participant.joinedAt = new Date();
       await this.repo.save(meeting);
@@ -250,7 +259,6 @@ export class MeetingService {
       return { admitted: false, waiting: true };
     }
 
-  
     if (!participant) {
       meeting.participants.push({
         user: userId as unknown as IParticipant['user'],
@@ -266,7 +274,6 @@ export class MeetingService {
     return { admitted: true, meeting: this.toSafeMeeting(meeting), role: MeetingRole.PARTICIPANT };
   }
 
-  
   async admitParticipant(meetingId: string, hostId: string, participantUserId: string): Promise<SafeMeeting> {
     const meeting = await this.repo.findById(meetingId);
     if (!meeting) throw ApiError.notFound('Meeting not found');
@@ -296,7 +303,6 @@ export class MeetingService {
     return this.toSafeMeeting(meeting);
   }
 
-  // --- Leave / End ---
   async leaveMeeting(meetingId: string, userId: string): Promise<void> {
     const meeting = await this.repo.findById(meetingId);
     if (!meeting) throw ApiError.notFound('Meeting not found');
@@ -343,7 +349,6 @@ export class MeetingService {
     await this.repo.save(meeting);
   }
 
- 
   async getMeetingById(meetingId: string, userId: string): Promise<SafeMeeting> {
     const meeting = await this.repo.findById(meetingId);
     if (!meeting) throw ApiError.notFound('Meeting not found');
@@ -365,5 +370,80 @@ export class MeetingService {
   async listHistory(userId: string): Promise<SafeMeeting[]> {
     const meetings = await this.repo.findHistoryForUser(userId);
     return meetings.map((m) => this.toSafeMeeting(m));
+  }
+
+  async removeParticipant(meetingId: string, actingUserId: string, targetUserId: string): Promise<SafeMeeting> {
+    const meeting = await this.repo.findById(meetingId);
+    if (!meeting) throw ApiError.notFound('Meeting not found');
+    this.assertIsHostOrCoHost(meeting, actingUserId);
+
+    if (idToString(meeting.host) === targetUserId) {
+      throw ApiError.badRequest('The host cannot be removed from their own meeting');
+    }
+
+    const participant = meeting.participants.find((p) => p.user.toString() === targetUserId);
+    if (!participant || participant.status !== ParticipantStatus.ADMITTED) {
+      throw ApiError.notFound('This participant is not currently in the meeting');
+    }
+
+    participant.status = ParticipantStatus.REMOVED;
+    participant.leftAt = new Date();
+
+    await this.repo.save(meeting);
+    return this.toSafeMeeting(meeting);
+  }
+
+  async setLocked(meetingId: string, hostId: string, locked: boolean): Promise<SafeMeeting> {
+    const meeting = await this.repo.findById(meetingId);
+    if (!meeting) throw ApiError.notFound('Meeting not found');
+    this.assertIsHost(meeting, hostId);
+
+    meeting.isLocked = locked;
+    await this.repo.save(meeting);
+    return this.toSafeMeeting(meeting);
+  }
+
+  async setRecording(meetingId: string, hostId: string, recording: boolean): Promise<SafeMeeting> {
+    const meeting = await this.repo.findById(meetingId);
+    if (!meeting) throw ApiError.notFound('Meeting not found');
+    this.assertIsHost(meeting, hostId);
+
+    meeting.isRecording = recording;
+    await this.repo.save(meeting);
+    return this.toSafeMeeting(meeting);
+  }
+
+  async assignCoHost(meetingId: string, hostId: string, targetUserId: string): Promise<SafeMeeting> {
+    const meeting = await this.repo.findById(meetingId);
+    if (!meeting) throw ApiError.notFound('Meeting not found');
+    this.assertIsHost(meeting, hostId);
+
+    if (idToString(meeting.host) === targetUserId) {
+      throw ApiError.badRequest('The host is already in charge of this meeting');
+    }
+
+    const participant = meeting.participants.find((p) => p.user.toString() === targetUserId);
+    if (!participant || participant.status !== ParticipantStatus.ADMITTED) {
+      throw ApiError.notFound('This participant is not currently in the meeting');
+    }
+
+    participant.role = MeetingRole.CO_HOST;
+    await this.repo.save(meeting);
+    return this.toSafeMeeting(meeting);
+  }
+
+  async revokeCoHost(meetingId: string, hostId: string, targetUserId: string): Promise<SafeMeeting> {
+    const meeting = await this.repo.findById(meetingId);
+    if (!meeting) throw ApiError.notFound('Meeting not found');
+    this.assertIsHost(meeting, hostId);
+
+    const participant = meeting.participants.find((p) => p.user.toString() === targetUserId);
+    if (!participant || participant.role !== MeetingRole.CO_HOST) {
+      throw ApiError.notFound('This participant is not currently a co-host');
+    }
+
+    participant.role = MeetingRole.PARTICIPANT;
+    await this.repo.save(meeting);
+    return this.toSafeMeeting(meeting);
   }
 }

@@ -8,12 +8,15 @@ import {
   joinMeetingSchema,
   meetingIdParamSchema,
   waitingRoomActionSchema,
+  participantActionParamSchema,
+  setLockedSchema,
+  setRecordingSchema,
   listMeetingsQuerySchema,
 } from './meeting.validation';
 
 const router = Router();
 
-router.use(authMiddleware); 
+router.use(authMiddleware);
 
 router.post('/instant', validate(createInstantMeetingSchema), meetingController.createInstantMeeting);
 router.post('/schedule', validate(scheduleMeetingSchema), meetingController.scheduleMeeting);
@@ -36,6 +39,24 @@ router.patch(
   '/:id/waiting-room/:userId/deny',
   validate(waitingRoomActionSchema),
   meetingController.denyParticipant
+);
+
+router.patch(
+  '/:id/participants/:userId/remove',
+  validate(participantActionParamSchema),
+  meetingController.removeParticipant
+);
+router.patch('/:id/lock', validate(setLockedSchema), meetingController.setLocked);
+router.patch('/:id/recording', validate(setRecordingSchema), meetingController.setRecording);
+router.patch(
+  '/:id/co-host/:userId',
+  validate(participantActionParamSchema),
+  meetingController.assignCoHost
+);
+router.delete(
+  '/:id/co-host/:userId',
+  validate(participantActionParamSchema),
+  meetingController.revokeCoHost
 );
 
 export default router;

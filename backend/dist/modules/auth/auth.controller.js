@@ -113,4 +113,3 @@ exports.verifyTwoFactorLogin = (0, asyncHandler_1.asyncHandler)(async (req, res)
     res.cookie(constants_1.REFRESH_COOKIE_NAME, tokens.refreshToken, constants_1.refreshCookieOptions);
     res.status(200).json(new apiResponse_1.ApiResponse('Login successful', { user, accessToken: tokens.accessToken }));
 });
-//# sourceMappingURL=auth.controller.js.map

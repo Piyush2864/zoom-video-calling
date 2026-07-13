@@ -6,7 +6,7 @@ export interface CreateInstantMeetingInput {
 
 export interface ScheduleMeetingInput {
   title: string;
-  scheduledStartTime: string; 
+  scheduledStartTime: string;
   scheduledEndTime: string;
   password?: string;
   waitingRoomEnabled?: boolean;
@@ -43,6 +43,8 @@ export interface SafeMeeting {
   actualEndTime?: Date;
   isRecurring: boolean;
   isPersonalRoom: boolean;
+  isLocked: boolean;
+  isRecording: boolean;
   hasPassword: boolean;
   settings: {
     waitingRoomEnabled: boolean;

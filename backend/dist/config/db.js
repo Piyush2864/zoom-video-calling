@@ -20,4 +20,3 @@ async function connectDB() {
         logger_1.logger.warn('MongoDB disconnected');
     });
 }
-//# sourceMappingURL=db.js.map

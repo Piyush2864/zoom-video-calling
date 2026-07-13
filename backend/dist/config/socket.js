@@ -4,7 +4,7 @@ exports.initSocket = initSocket;
 exports.getIO = getIO;
 const socket_io_1 = require("socket.io");
 const env_1 = require("./env");
-const logger_1 = require("../utils/logger");
+const index_1 = require("../modules/socket/index");
 let io;
 function initSocket(server) {
     io = new socket_io_1.Server(server, {
@@ -13,12 +13,7 @@ function initSocket(server) {
             credentials: true,
         },
     });
-    io.on('connection', (socket) => {
-        logger_1.logger.info(`Socket connected: ${socket.id}`);
-        socket.on('disconnect', () => {
-            logger_1.logger.info(`Socket disconnected: ${socket.id}`);
-        });
-    });
+    (0, index_1.registerSocketHandlers)(io);
     return io;
 }
 function getIO() {
@@ -26,4 +21,3 @@ function getIO() {
         throw new Error('Socket.io not initialized yet');
     return io;
 }
-//# sourceMappingURL=socket.js.map

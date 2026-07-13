@@ -88,7 +88,6 @@ export class AuthService {
   async login(input: LoginInput): Promise<LoginResult> {
     const user = await this.repo.findByEmail(input.email, true);
     if (!user || !user.password) {
-      // covers: user not found, OR user signed up via Google and has no password
       throw ApiError.unauthorized('Invalid email or password');
     }
 
@@ -102,10 +101,6 @@ export class AuthService {
     return { twoFactorRequired: false, user: this.toSafeUser(user), tokens: this.issueTokens(user) };
   }
 
-  /**
-   * Frontend uses Google Identity Services to get an ID token, then sends it here.
-   * We verify it server-side with Google's library — never trust a client-decoded token.
-   */
   async googleLogin(idToken: string): Promise<LoginResult> {
     const ticket = await googleClient.verifyIdToken({
       idToken,
@@ -122,7 +117,6 @@ export class AuthService {
     let user = await this.repo.findByGoogleId(googleId);
 
     if (!user) {
-      // check if an account with this email already exists (signed up locally before)
       const existingByEmail = await this.repo.findByEmail(email);
       if (existingByEmail) {
         user = await this.repo.linkGoogleAccount(existingByEmail.id, googleId, picture);
@@ -156,7 +150,6 @@ export class AuthService {
     const user = await this.repo.findById(payload.userId);
     if (!user) throw ApiError.unauthorized('User no longer exists');
 
-    // if tokenVersion mismatches, refresh token was issued before a logout-all / password change
     if (user.tokenVersion !== payload.tokenVersion) {
       throw ApiError.unauthorized('Refresh token has been revoked');
     }
@@ -165,11 +158,8 @@ export class AuthService {
   }
 
   async logout(userId: string): Promise<void> {
-    // bumping tokenVersion invalidates every refresh token issued so far
     await this.repo.incrementTokenVersion(userId);
   }
-
-  // --- Email verification ---
 
   async verifyEmail(rawToken: string): Promise<void> {
     const user = await this.repo.findByEmailVerificationHash(hashToken(rawToken));
@@ -179,15 +169,13 @@ export class AuthService {
 
   async resendVerificationEmail(email: string): Promise<void> {
     const user = await this.repo.findByEmail(email);
-    if (!user || user.isEmailVerified) return; // don't leak account existence/state
+    if (!user || user.isEmailVerified) return;
     await this.sendVerificationEmail(user);
   }
 
-  // --- Password reset (no auth middleware — user isn't logged in) ---
-
   async forgotPassword(email: string): Promise<void> {
     const user = await this.repo.findByEmail(email);
-    if (!user) return; // don't leak whether the email exists
+    if (!user) return;
 
     const rawToken = generateRawToken();
     const expires = new Date(Date.now() + PASSWORD_RESET_EXPIRY_MS);
@@ -204,10 +192,8 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await this.repo.updatePassword(user.id, hashedPassword);
     await this.repo.clearPasswordResetToken(user.id);
-    await this.repo.incrementTokenVersion(user.id); // invalidate old sessions
+    await this.repo.incrementTokenVersion(user.id);
   }
-
-  // --- Two-factor authentication (TOTP) ---
 
   async setupTwoFactor(userId: string, email: string): Promise<TwoFactorSetupResult> {
     const secret = authenticator.generateSecret();
@@ -269,14 +255,12 @@ export class AuthService {
     const isValidTotp = authenticator.verify({ token: code, secret: user.twoFactorSecret });
 
     if (!isValidTotp) {
-      // fall back to checking backup codes
       const hashedInput = hashToken(code.toUpperCase());
       const backupCodes = user.twoFactorBackupCodes || [];
       const matchIndex = backupCodes.indexOf(hashedInput);
 
       if (matchIndex === -1) throw ApiError.unauthorized('Invalid authentication code');
 
-      // consume the used backup code so it can't be reused
       const remaining = [...backupCodes];
       remaining.splice(matchIndex, 1);
       await this.repo.consumeBackupCode(user.id, remaining);

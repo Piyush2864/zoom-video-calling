@@ -3,7 +3,6 @@ import { Server } from 'socket.io';
 import { env } from './env';
 import { registerSocketHandlers } from '../modules/socket/index';
 
-
 export interface SocketData {
   user: { userId: string; email: string };
 }
@@ -12,7 +11,6 @@ export interface PresenceEntry {
   socketId: string;
   userId: string;
 }
-
 
 export interface SDPPayload {
   type: 'offer' | 'answer' | 'pranswer' | 'rollback';
@@ -26,6 +24,13 @@ export interface ICECandidatePayload {
   usernameFragment?: string | null;
 }
 
+export interface ChatAttachmentPayload {
+  url: string;
+  publicId: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+}
 
 export interface ClientToServerEvents {
   'meeting:join': (payload: { meetingId: string }) => void;
@@ -42,8 +47,19 @@ export interface ClientToServerEvents {
     audioEnabled: boolean;
     videoEnabled: boolean;
   }) => void;
+  'chat:send': (payload: {
+    meetingId: string;
+    recipientId?: string;
+    content?: string;
+    attachment?: ChatAttachmentPayload;
+  }) => void;
+  'chat:typing': (payload: { meetingId: string; recipientId?: string; isTyping: boolean }) => void;
+  'host:mute-all': (payload: { meetingId: string }) => void;
+  'host:remove-participant': (payload: { meetingId: string; targetUserId: string }) => void;
+  'host:lock-meeting': (payload: { meetingId: string; locked: boolean }) => void;
+  'host:toggle-recording': (payload: { meetingId: string; recording: boolean }) => void;
+  'host:assign-co-host': (payload: { meetingId: string; targetUserId: string }) => void;
 }
-
 
 export interface ServerToClientEvents {
   'meeting:joined': (payload: { meetingId: string; participants: PresenceEntry[] }) => void;
@@ -73,8 +89,25 @@ export interface ServerToClientEvents {
     audioEnabled: boolean;
     videoEnabled: boolean;
   }) => void;
+  'chat:message': (payload: {
+    id: string;
+    meetingId: string;
+    senderId: string;
+    recipientId?: string;
+    content?: string;
+    attachment?: ChatAttachmentPayload;
+    createdAt: string;
+  }) => void;
+  'chat:typing': (payload: { meetingId: string; userId: string; isTyping: boolean }) => void;
+  'chat:error': (payload: { message: string }) => void;
+  'host:force-mute': (payload: { meetingId: string }) => void;
+  'host:removed': (payload: { meetingId: string; reason: string }) => void;
+  'host:participant-removed': (payload: { meetingId: string; userId: string }) => void;
+  'host:lock-changed': (payload: { meetingId: string; locked: boolean }) => void;
+  'host:recording-changed': (payload: { meetingId: string; recording: boolean }) => void;
+  'host:co-host-assigned': (payload: { meetingId: string; userId: string }) => void;
+  'host:error': (payload: { message: string }) => void;
 }
-
 
 export type InterServerEvents = Record<string, never>;
 

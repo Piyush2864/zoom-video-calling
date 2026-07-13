@@ -9,4 +9,3 @@ class ApiResponse {
     }
 }
 exports.ApiResponse = ApiResponse;
-//# sourceMappingURL=apiResponse.js.map

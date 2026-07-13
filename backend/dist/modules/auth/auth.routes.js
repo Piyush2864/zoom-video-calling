@@ -40,7 +40,6 @@ const auth_middleware_1 = require("../../middlewares/auth.middleware");
 const rateLimiter_middleware_1 = require("../../middlewares/rateLimiter.middleware");
 const auth_validation_1 = require("./auth.validation");
 const router = (0, express_1.Router)();
-// Core auth
 router.post('/signup', rateLimiter_middleware_1.authRateLimiter, (0, validate_middleware_1.validate)(auth_validation_1.signupSchema), authController.signup);
 router.post('/login', rateLimiter_middleware_1.authRateLimiter, (0, validate_middleware_1.validate)(auth_validation_1.loginSchema), authController.login);
 router.post('/google', rateLimiter_middleware_1.authRateLimiter, (0, validate_middleware_1.validate)(auth_validation_1.googleLoginSchema), authController.googleLogin);
@@ -55,4 +54,3 @@ router.post('/2fa/confirm', auth_middleware_1.authMiddleware, (0, validate_middl
 router.post('/2fa/disable', auth_middleware_1.authMiddleware, (0, validate_middleware_1.validate)(auth_validation_1.twoFactorDisableSchema), authController.disableTwoFactor);
 router.post('/2fa/login-verify', rateLimiter_middleware_1.authRateLimiter, (0, validate_middleware_1.validate)(auth_validation_1.twoFactorLoginVerifySchema), authController.verifyTwoFactorLogin);
 exports.default = router;
-//# sourceMappingURL=auth.routes.js.map

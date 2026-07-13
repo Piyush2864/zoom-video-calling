@@ -9,6 +9,8 @@ import {
 import { socketAuthMiddleware } from './socket.middleware';
 import { registerMeetingHandlers } from './meeting.socket';
 import { registerWebRTCHandlers } from './webrtc.socket';
+import { registerChatHandlers } from './chat.socket';
+import { registerHostControlHandlers } from './host-controls.socket';
 import { logger } from '../../utils/logger';
 
 type AuthSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -21,6 +23,8 @@ export function registerSocketHandlers(io: IOServer): void {
 
     registerMeetingHandlers(io, socket);
     registerWebRTCHandlers(io, socket);
+    registerChatHandlers(io, socket);
+    registerHostControlHandlers(io, socket);
 
     socket.on('disconnect', (reason) => {
       logger.info(`Socket disconnected: ${socket.id} (${reason})`);

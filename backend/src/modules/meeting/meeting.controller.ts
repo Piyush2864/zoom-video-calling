@@ -90,3 +90,37 @@ export const listMeetings = asyncHandler(async (req: AuthRequest, res: Response)
       : await meetingService.listUpcoming(req.user.userId);
   res.status(200).json(new ApiResponse(`${scope} meetings fetched`, meetings));
 });
+
+export const removeParticipant = asyncHandler(async (req: AuthRequest, res: Response) => {
+  if (!req.user) throw ApiError.unauthorized();
+  const meeting = await meetingService.removeParticipant(req.params.id, req.user.userId, req.params.userId);
+  res.status(200).json(new ApiResponse('Participant removed', meeting));
+});
+
+export const setLocked = asyncHandler(async (req: AuthRequest, res: Response) => {
+  if (!req.user) throw ApiError.unauthorized();
+  const meeting = await meetingService.setLocked(req.params.id, req.user.userId, req.body.locked);
+  res
+    .status(200)
+    .json(new ApiResponse(req.body.locked ? 'Meeting locked' : 'Meeting unlocked', meeting));
+});
+
+export const setRecording = asyncHandler(async (req: AuthRequest, res: Response) => {
+  if (!req.user) throw ApiError.unauthorized();
+  const meeting = await meetingService.setRecording(req.params.id, req.user.userId, req.body.recording);
+  res
+    .status(200)
+    .json(new ApiResponse(req.body.recording ? 'Recording started' : 'Recording stopped', meeting));
+});
+
+export const assignCoHost = asyncHandler(async (req: AuthRequest, res: Response) => {
+  if (!req.user) throw ApiError.unauthorized();
+  const meeting = await meetingService.assignCoHost(req.params.id, req.user.userId, req.params.userId);
+  res.status(200).json(new ApiResponse('Co-host assigned', meeting));
+});
+
+export const revokeCoHost = asyncHandler(async (req: AuthRequest, res: Response) => {
+  if (!req.user) throw ApiError.unauthorized();
+  const meeting = await meetingService.revokeCoHost(req.params.id, req.user.userId, req.params.userId);
+  res.status(200).json(new ApiResponse('Co-host revoked', meeting));
+});

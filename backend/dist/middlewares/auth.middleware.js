@@ -18,4 +18,3 @@ function authMiddleware(req, res, next) {
         next(apiError_1.ApiError.unauthorized('Invalid or expired access token'));
     }
 }
-//# sourceMappingURL=auth.middleware.js.map

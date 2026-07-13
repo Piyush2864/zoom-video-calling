@@ -14,4 +14,3 @@ function parseRedisUrl(url) {
     };
 }
 exports.redisConnectionOptions = parseRedisUrl(env.REDIS_URL);
-//# sourceMappingURL=worker.js.map

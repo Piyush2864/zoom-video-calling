@@ -39,4 +39,3 @@ function verifyTwoFactorTempToken(token) {
     }
     return payload;
 }
-//# sourceMappingURL=jwt.js.map

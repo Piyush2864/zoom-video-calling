@@ -29,4 +29,3 @@ function errorMiddleware(err, req, res, next) {
 function notFoundMiddleware(req, res) {
     res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
 }
-//# sourceMappingURL=error.middleware.js.map

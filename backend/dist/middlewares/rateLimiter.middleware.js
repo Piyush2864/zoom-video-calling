@@ -21,4 +21,3 @@ exports.globalRateLimiter = (0, express_rate_limit_1.default)({
     standardHeaders: true,
     legacyHeaders: false,
 });
-//# sourceMappingURL=rateLimiter.middleware.js.map

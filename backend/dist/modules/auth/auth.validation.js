@@ -2,15 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.twoFactorDisableSchema = exports.twoFactorLoginVerifySchema = exports.twoFactorVerifySetupSchema = exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.resendVerificationSchema = exports.verifyEmailSchema = exports.googleLoginSchema = exports.loginSchema = exports.signupSchema = void 0;
 const zod_1 = require("zod");
+const validators_1 = require("../../utils/validators");
 exports.signupSchema = zod_1.z.object({
     body: zod_1.z.object({
         name: zod_1.z.string().min(2, 'Name must be at least 2 characters'),
         email: zod_1.z.string().email('Invalid email address'),
-        password: zod_1.z
-            .string()
-            .min(8, 'Password must be at least 8 characters')
-            .regex(/[A-Z]/, 'Password must contain an uppercase letter')
-            .regex(/[0-9]/, 'Password must contain a number'),
+        password: validators_1.passwordSchema,
     }),
 });
 exports.loginSchema = zod_1.z.object({
@@ -42,11 +39,7 @@ exports.forgotPasswordSchema = zod_1.z.object({
 exports.resetPasswordSchema = zod_1.z.object({
     body: zod_1.z.object({
         token: zod_1.z.string().min(1, 'Reset token is required'),
-        newPassword: zod_1.z
-            .string()
-            .min(8, 'Password must be at least 8 characters')
-            .regex(/[A-Z]/, 'Password must contain an uppercase letter')
-            .regex(/[0-9]/, 'Password must contain a number'),
+        newPassword: validators_1.passwordSchema,
     }),
 });
 exports.twoFactorVerifySetupSchema = zod_1.z.object({
@@ -65,4 +58,3 @@ exports.twoFactorDisableSchema = zod_1.z.object({
         password: zod_1.z.string().min(1, 'Current password is required to disable 2FA'),
     }),
 });
-//# sourceMappingURL=auth.validation.js.map

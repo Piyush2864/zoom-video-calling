@@ -6,8 +6,8 @@ import {
   SocketData,
   IOServer,
 } from '../../config/socket';
-import { MeetingRepository } from '../../modules/meeting/meeting.repository';
-import { idToString } from '../../modules/meeting/meeting.utils';
+import { MeetingRepository } from '../meeting/meeting.repository';
+import { idToString } from '../meeting/meeting.utils';
 import { MeetingStatus, ParticipantStatus } from '../../config/constants';
 import { logger } from '../../utils/logger';
 import { meetingRoomName } from './room.util';
@@ -48,13 +48,13 @@ export function registerMeetingHandlers(io: IOServer, socket: AuthSocket): void 
       socket.join(meetingRoomName(meetingId));
       presence.addParticipant(meetingId, socket.id, userId);
 
-      
+
       socket.emit('meeting:joined', {
         meetingId,
         participants: presence.getParticipants(meetingId),
       });
 
-      
+    
       socket.to(meetingRoomName(meetingId)).emit('meeting:participant-joined', {
         meetingId,
         userId,

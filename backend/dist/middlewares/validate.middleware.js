@@ -21,4 +21,3 @@ function validate(schema) {
         }
     };
 }
-//# sourceMappingURL=validate.middleware.js.map

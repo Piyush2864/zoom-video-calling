@@ -28,4 +28,3 @@ function startMailWorker() {
     worker.on('failed', (job, err) => logger_1.logger.error(`Mail job ${job?.id} failed`, { error: err.message }));
     return worker;
 }
-//# sourceMappingURL=mail.worker.js.map

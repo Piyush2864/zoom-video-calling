@@ -48,6 +48,23 @@ export const waitingRoomActionSchema = z.object({
   }),
 });
 
+export const participantActionParamSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
+    userId: z.string().min(1),
+  }),
+});
+
+export const setLockedSchema = z.object({
+  params: z.object({ id: z.string().min(1) }),
+  body: z.object({ locked: z.boolean() }),
+});
+
+export const setRecordingSchema = z.object({
+  params: z.object({ id: z.string().min(1) }),
+  body: z.object({ recording: z.boolean() }),
+});
+
 export const listMeetingsQuerySchema = z.object({
   query: z.object({
     scope: z.enum(['upcoming', 'history']).optional(),

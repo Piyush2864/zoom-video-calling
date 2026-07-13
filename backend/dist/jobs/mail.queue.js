@@ -21,4 +21,3 @@ function enqueueVerificationEmail(to, name, verifyUrl) {
 function enqueuePasswordResetEmail(to, name, resetUrl) {
     return exports.mailQueue.add('send-mail', { type: 'password-reset', to, name, resetUrl });
 }
-//# sourceMappingURL=mail.queue.js.map

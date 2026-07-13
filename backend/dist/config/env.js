@@ -28,6 +28,15 @@ const envSchema = zod_1.z.object({
     SMTP_PASS: zod_1.z.string().min(1, 'SMTP_PASS is required'),
     MAIL_FROM: zod_1.z.string().min(1, 'MAIL_FROM is required'),
     APP_NAME: zod_1.z.string().default('ZoomClone'),
+    CLOUDINARY_CLOUD_NAME: zod_1.z.string().min(1, 'CLOUDINARY_CLOUD_NAME is required'),
+    CLOUDINARY_API_KEY: zod_1.z.string().min(1, 'CLOUDINARY_API_KEY is required'),
+    CLOUDINARY_API_SECRET: zod_1.z.string().min(1, 'CLOUDINARY_API_SECRET is required'),
+    STUN_URLS: zod_1.z.string().default('stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302'),
+    TURN_URL: zod_1.z.string().optional(),
+    TURN_USERNAME: zod_1.z.string().optional(),
+    TURN_CREDENTIAL: zod_1.z.string().optional(),
+    GEMINI_API_KEY: zod_1.z.string().min(1, 'GEMINI_API_KEY is required'),
+    GEMINI_MODEL: zod_1.z.string().default('gemini-1.5-flash'),
 });
 const parsed = envSchema.safeParse(process.env);
 if (!parsed.success) {
@@ -35,4 +44,3 @@ if (!parsed.success) {
     process.exit(1);
 }
 exports.env = parsed.data;
-//# sourceMappingURL=env.js.map

@@ -1,8 +1,6 @@
 import { PresenceEntry } from '../../config/socket';
 
-
 const roomParticipants = new Map<string, Map<string, string>>();
-
 const socketMeetings = new Map<string, Set<string>>();
 
 export function addParticipant(meetingId: string, socketId: string, userId: string): void {
@@ -29,4 +27,12 @@ export function getParticipants(meetingId: string): PresenceEntry[] {
 
 export function getMeetingsForSocket(socketId: string): string[] {
   return Array.from(socketMeetings.get(socketId) || []);
+}
+
+export function getSocketIdsForUser(meetingId: string, userId: string): string[] {
+  const room = roomParticipants.get(meetingId);
+  if (!room) return [];
+  return Array.from(room.entries())
+    .filter(([, uid]) => uid === userId)
+    .map(([socketId]) => socketId);
 }

@@ -49,4 +49,3 @@ function passwordResetEmailTemplate(name, resetUrl) {
     </div>
   `;
 }
-//# sourceMappingURL=mailer.js.map

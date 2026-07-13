@@ -110,7 +110,7 @@ export class UserService {
 
     const hashed = await bcrypt.hash(newPassword, 12);
     await this.repo.updatePassword(userId, hashed);
-    await this.repo.incrementTokenVersion(userId); // invalidate other sessions
+    await this.repo.incrementTokenVersion(userId);
   }
 
   async deleteAccount(userId: string, password?: string): Promise<void> {

@@ -17,7 +17,7 @@ export interface IParticipant {
 
 export interface IRecurrenceRule {
   frequency: RecurrenceFrequency;
-  daysOfWeek?: number[]; 
+  daysOfWeek?: number[];
   endDate?: Date;
 }
 
@@ -31,7 +31,7 @@ export interface IMeetingSettings {
 export interface IMeeting extends Document {
   title: string;
   host: Types.ObjectId;
-  meetingCode: string; 
+  meetingCode: string;
   passwordHash?: string;
   type: MeetingType;
   status: MeetingStatus;
@@ -45,6 +45,8 @@ export interface IMeeting extends Document {
   recurrence?: IRecurrenceRule;
 
   isPersonalRoom: boolean;
+  isLocked: boolean;
+  isRecording: boolean;
 
   settings: IMeetingSettings;
   participants: IParticipant[];
@@ -110,6 +112,8 @@ const meetingSchema = new Schema<IMeeting>(
     recurrence: { type: recurrenceSchema },
 
     isPersonalRoom: { type: Boolean, default: false },
+    isLocked: { type: Boolean, default: false },
+    isRecording: { type: Boolean, default: false },
 
     settings: { type: settingsSchema, default: () => ({}) },
     participants: { type: [participantSchema], default: [] },
@@ -117,7 +121,6 @@ const meetingSchema = new Schema<IMeeting>(
   },
   { timestamps: true }
 );
-
 
 meetingSchema.index(
   { host: 1, isPersonalRoom: 1 },

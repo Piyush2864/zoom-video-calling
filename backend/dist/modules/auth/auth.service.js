@@ -7,7 +7,7 @@ exports.AuthService = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const crypto_1 = __importDefault(require("crypto"));
 const qrcode_1 = __importDefault(require("qrcode"));
-const authenticator_1 = __importDefault(require("otplib/authenticator"));
+const otplib_1 = require("otplib");
 const google_auth_library_1 = require("google-auth-library");
 const auth_repository_1 = require("./auth.repository");
 const apiError_1 = require("../../utils/apiError");
@@ -64,7 +64,6 @@ class AuthService {
     async login(input) {
         const user = await this.repo.findByEmail(input.email, true);
         if (!user || !user.password) {
-            // covers: user not found, OR user signed up via Google and has no password
             throw apiError_1.ApiError.unauthorized('Invalid email or password');
         }
         const isValid = await bcryptjs_1.default.compare(input.password, user.password);
@@ -75,10 +74,6 @@ class AuthService {
         }
         return { twoFactorRequired: false, user: this.toSafeUser(user), tokens: this.issueTokens(user) };
     }
-    /**
-     * Frontend uses Google Identity Services to get an ID token, then sends it here.
-     * We verify it server-side with Google's library — never trust a client-decoded token.
-     */
     async googleLogin(idToken) {
         const ticket = await googleClient.verifyIdToken({
             idToken,
@@ -91,7 +86,6 @@ class AuthService {
         const { sub: googleId, email, name, picture } = payload;
         let user = await this.repo.findByGoogleId(googleId);
         if (!user) {
-            // check if an account with this email already exists (signed up locally before)
             const existingByEmail = await this.repo.findByEmail(email);
             if (existingByEmail) {
                 user = await this.repo.linkGoogleAccount(existingByEmail.id, googleId, picture);
@@ -123,17 +117,14 @@ class AuthService {
         const user = await this.repo.findById(payload.userId);
         if (!user)
             throw apiError_1.ApiError.unauthorized('User no longer exists');
-        // if tokenVersion mismatches, refresh token was issued before a logout-all / password change
         if (user.tokenVersion !== payload.tokenVersion) {
             throw apiError_1.ApiError.unauthorized('Refresh token has been revoked');
         }
         return this.issueTokens(user);
     }
     async logout(userId) {
-        // bumping tokenVersion invalidates every refresh token issued so far
         await this.repo.incrementTokenVersion(userId);
     }
-    // --- Email verification ---
     async verifyEmail(rawToken) {
         const user = await this.repo.findByEmailVerificationHash(hashToken(rawToken));
         if (!user)
@@ -146,7 +137,6 @@ class AuthService {
             return; // don't leak account existence/state
         await this.sendVerificationEmail(user);
     }
-    // --- Password reset (no auth middleware — user isn't logged in) ---
     async forgotPassword(email) {
         const user = await this.repo.findByEmail(email);
         if (!user)
@@ -166,11 +156,10 @@ class AuthService {
         await this.repo.clearPasswordResetToken(user.id);
         await this.repo.incrementTokenVersion(user.id); // invalidate old sessions
     }
-    // --- Two-factor authentication (TOTP) ---
     async setupTwoFactor(userId, email) {
-        const secret = authenticator_1.default.generateSecret();
+        const secret = otplib_1.authenticator.generateSecret();
         await this.repo.setTwoFactorTempSecret(userId, secret);
-        const otpauthUrl = authenticator_1.default.keyuri(email, env_1.env.APP_NAME, secret);
+        const otpauthUrl = otplib_1.authenticator.keyuri(email, env_1.env.APP_NAME, secret);
         const qrCodeDataUrl = await qrcode_1.default.toDataURL(otpauthUrl);
         return { qrCodeDataUrl, secret };
     }
@@ -179,7 +168,7 @@ class AuthService {
         if (!user || !user.twoFactorTempSecret) {
             throw apiError_1.ApiError.badRequest('No 2FA setup in progress. Start setup again.');
         }
-        const isValid = authenticator_1.default.verify({ token: code, secret: user.twoFactorTempSecret });
+        const isValid = otplib_1.authenticator.verify({ token: code, secret: user.twoFactorTempSecret });
         if (!isValid)
             throw apiError_1.ApiError.unauthorized('Invalid authenticator code');
         const rawBackupCodes = Array.from({ length: constants_1.TWO_FACTOR_BACKUP_CODE_COUNT }, () => crypto_1.default.randomBytes(5).toString('hex').toUpperCase());
@@ -209,15 +198,13 @@ class AuthService {
         if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
             throw apiError_1.ApiError.unauthorized('2FA is not enabled for this account');
         }
-        const isValidTotp = authenticator_1.default.verify({ token: code, secret: user.twoFactorSecret });
+        const isValidTotp = otplib_1.authenticator.verify({ token: code, secret: user.twoFactorSecret });
         if (!isValidTotp) {
-            // fall back to checking backup codes
             const hashedInput = hashToken(code.toUpperCase());
             const backupCodes = user.twoFactorBackupCodes || [];
             const matchIndex = backupCodes.indexOf(hashedInput);
             if (matchIndex === -1)
                 throw apiError_1.ApiError.unauthorized('Invalid authentication code');
-            // consume the used backup code so it can't be reused
             const remaining = [...backupCodes];
             remaining.splice(matchIndex, 1);
             await this.repo.consumeBackupCode(user.id, remaining);
@@ -226,4 +213,3 @@ class AuthService {
     }
 }
 exports.AuthService = AuthService;
-//# sourceMappingURL=auth.service.js.map

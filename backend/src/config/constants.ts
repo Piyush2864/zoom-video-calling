@@ -30,17 +30,18 @@ export enum MeetingType {
 }
 
 export enum MeetingStatus {
-  SCHEDULED = 'scheduled', 
+  SCHEDULED = 'scheduled',
   ONGOING = 'ongoing',
   ENDED = 'ended',
   CANCELLED = 'cancelled',
 }
 
 export enum ParticipantStatus {
-  WAITING = 'waiting', 
+  WAITING = 'waiting',
   ADMITTED = 'admitted',
   DENIED = 'denied',
   LEFT = 'left',
+  REMOVED = 'removed',
 }
 
 export enum RecurrenceFrequency {
@@ -49,11 +50,8 @@ export enum RecurrenceFrequency {
   MONTHLY = 'monthly',
 }
 
+export const EMAIL_VERIFICATION_EXPIRY_MS = 24 * 60 * 60 * 1000;
 
-export const EMAIL_VERIFICATION_EXPIRY_MS = 24 * 60 * 60 * 1000; 
-
-
-export const PASSWORD_RESET_EXPIRY_MS = 15 * 60 * 1000; 
-
+export const PASSWORD_RESET_EXPIRY_MS = 15 * 60 * 1000;
 
 export const TWO_FACTOR_BACKUP_CODE_COUNT = 8;

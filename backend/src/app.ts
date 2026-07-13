@@ -8,6 +8,8 @@ import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/user/user.routes';
 import meetingRoutes from './modules/meeting/meeting.routes';
 import webrtcRoutes from './modules/webrtc/webrtc.routes';
+import chatRoutes from './modules/chat/chat.routes';
+import summaryRoutes from './modules/summary/summary.routes';
 
 const app: Application = express();
 
@@ -30,8 +32,8 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/meetings', meetingRoutes);
 app.use('/api/v1/webrtc', webrtcRoutes);
-
-
+app.use('/api/v1/chat', chatRoutes);
+app.use('/api/v1/summary', summaryRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
