@@ -10,6 +10,7 @@ import {
   RecurrenceFrequency,
 } from '../../config/constants';
 import { IMeeting, IParticipant } from './meeting.model';
+import { idToString } from './meeting.utils';
 import {
   CreateInstantMeetingInput,
   ScheduleMeetingInput,
@@ -19,7 +20,7 @@ import {
 } from './meeting.types';
 
 function generateMeetingCode(): string {
-
+ 
   const digits = crypto.randomInt(100000000, 999999999).toString();
   return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 9)}`;
 }
@@ -41,7 +42,7 @@ export class MeetingService {
     return {
       id: meeting.id,
       title: meeting.title,
-      hostId: meeting.host.toString(),
+      hostId: idToString(meeting.host),
       meetingCode: meeting.meetingCode,
       type: meeting.type,
       status: meeting.status,
@@ -72,12 +73,12 @@ export class MeetingService {
   }
 
   private assertIsHost(meeting: IMeeting, userId: string) {
-    if (meeting.host.toString() !== userId) {
+    if (idToString(meeting.host) !== userId) {
       throw ApiError.forbidden('Only the host can perform this action');
     }
   }
 
-  
+ 
   async createInstantMeeting(hostId: string, input: CreateInstantMeetingInput): Promise<SafeMeeting> {
     const meetingCode = await this.generateUniqueMeetingCode();
 
@@ -101,7 +102,7 @@ export class MeetingService {
     return this.toSafeMeeting(meeting);
   }
 
- 
+
   async scheduleMeeting(hostId: string, input: ScheduleMeetingInput): Promise<SafeMeeting> {
     const meetingCode = await this.generateUniqueMeetingCode();
     const passwordHash = input.password ? await bcrypt.hash(input.password, 10) : undefined;
@@ -201,7 +202,7 @@ export class MeetingService {
       if (!isValid) throw ApiError.unauthorized('Incorrect meeting password');
     }
 
-    const isHost = meeting.host.toString() === userId;
+    const isHost = idToString(meeting.host) === userId;
     const participant = meeting.participants.find((p) => p.user.toString() === userId);
 
     if (isHost) {
@@ -249,7 +250,7 @@ export class MeetingService {
       return { admitted: false, waiting: true };
     }
 
-    
+  
     if (!participant) {
       meeting.participants.push({
         user: userId as unknown as IParticipant['user'],
@@ -265,6 +266,7 @@ export class MeetingService {
     return { admitted: true, meeting: this.toSafeMeeting(meeting), role: MeetingRole.PARTICIPANT };
   }
 
+  
   async admitParticipant(meetingId: string, hostId: string, participantUserId: string): Promise<SafeMeeting> {
     const meeting = await this.repo.findById(meetingId);
     if (!meeting) throw ApiError.notFound('Meeting not found');
@@ -294,7 +296,7 @@ export class MeetingService {
     return this.toSafeMeeting(meeting);
   }
 
-  
+  // --- Leave / End ---
   async leaveMeeting(meetingId: string, userId: string): Promise<void> {
     const meeting = await this.repo.findById(meetingId);
     if (!meeting) throw ApiError.notFound('Meeting not found');
@@ -341,12 +343,12 @@ export class MeetingService {
     await this.repo.save(meeting);
   }
 
-  
+ 
   async getMeetingById(meetingId: string, userId: string): Promise<SafeMeeting> {
     const meeting = await this.repo.findById(meetingId);
     if (!meeting) throw ApiError.notFound('Meeting not found');
 
-    const isHost = meeting.host.toString() === userId;
+    const isHost = idToString(meeting.host) === userId;
     const isParticipant = meeting.participants.some((p) => p.user.toString() === userId);
     if (!isHost && !isParticipant) {
       throw ApiError.forbidden('You do not have access to this meeting');
